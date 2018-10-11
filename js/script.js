@@ -62,7 +62,7 @@ function startGame() {
     let container = document.getElementsByClassName('container')[0];
 
     container.onclick = function (event) {
-        if (!event.target.classList.contains('flag') && !event.target.classList.contains('open') && !event.target.classList.contains('clicked')) {
+        if (!event.target.classList.contains('flag') && !event.target.classList.contains('open')) {
             event.target.classList.add('open')
             for (let i = 0; i < size; i++) {
                 for (let j = 0; j < size; j++) {
@@ -72,7 +72,12 @@ function startGame() {
                         if (cells[i][j].isMine) {
                             element.classList.add('bomb')
                         } else {
-                            element.innerHTML = cells[i][j].mineAround > 0 ? `${cells[i][j].mineAround}` : openNeibors(i, j);
+                            if (cells[i][j].mineAround ) {
+                                element.innerHTML = cells[i][j].mineAround
+                            } else {
+                                openNeibors(i, j);
+                            }
+
                         }
 
                         cells[i][j].isOpen = true;
@@ -98,7 +103,7 @@ function startGame() {
         isGameOver();
     }
 
-    function openNeibors(x, y) {
+    function openNeibors(x,y) {
         let startX = x > 0 ? x - 1 : x;
         let endX = x < size - 1 ? x + 1 : x;
         let startY = y > 0 ? y - 1 : y;
@@ -106,17 +111,22 @@ function startGame() {
 
         for (let i = startX; i <= endX; i++) {
             for (let j = startY; j <= endY; j++) {
-                if (!cells[i][j].isMine && !(i == x && j == y)) {
-                    let number = i * size + j;
-                    let element = elements[number];
-                    element.innerHTML = cells[i][j].mineAround > 0 ? `${cells[i][j].mineAround}` : '';
-                    element.classList.add('clicked');
-                    cells[i][j].isOpen = true;
+                let number = i * size + j;
+                let element = elements[number];
+                if (!cells[i][j].isMine && !element.classList.contains('open') && !element.classList.contains('flag')) {
+                    if (cells[i][j].mineAround > 0) {
+                        element.innerHTML = cells[i][j].mineAround
+                        element.classList.add('open')
+                        cells[i][j].isOpen = true;
+                    } else {
+                        element.classList.add('open')
+                        cells[i][j].isOpen = true;
+                        openNeibors(i,j);
+                    }
+
                 }
             }
         }
-
-        return '';
     }
 
     function isGameOver() {
@@ -133,13 +143,13 @@ function startGame() {
                     return;
                 }
 
-                if (cells[i][j].isMine && element.classList.contains('flag')) {
+                if (cells[i][j].isOpen) {
                     count++
                 }
             }
         }
 
-        if (count == bombs) {
+        if (size*size - count == bombs) {
             document.getElementsByClassName('result_text')[0].classList.add('yellow-text')
             document.getElementsByClassName('result_text')[0].innerHTML = 'congratulations you won'
             document.getElementsByClassName('result')[0].classList.add('over-game')
@@ -174,8 +184,10 @@ let restartButton = document.getElementsByClassName('restart-btn')[0];
         elements[i].classList.remove('bomb');
         elements[i].classList.remove('clicked');
         elements[i].innerHTML = '';
-        document.getElementsByClassName('result')[0].classList.remove('over-game')
     }
+        document.getElementsByClassName('result')[0].classList.remove('over-game')
+        document.getElementsByClassName('result_text')[0].classList.remove('red-text')
+        document.getElementsByClassName('result_text')[0].classList.remove('yellow-text')
 
     startGame();
 }
